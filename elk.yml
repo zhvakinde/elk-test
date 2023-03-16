@@ -1,0 +1,47 @@
+version: "3.4"
+services:
+  logstash:
+    image: logstash:7.10.1
+    container_name: logstash
+    depends_on:
+      - elasticsearch
+    volumes:
+      - ./log.conf:/usr/share/logstash/pipeline/logstash.conf 
+    ports:
+      - 5044:5044
+    environment:
+      - "LS_JAVA_OPTS=-Xmx512m -Xms512m"
+
+  elasticsearch:
+    image: elasticsearch:7.10.1
+    container_name: elasticsearch
+    ports:
+      - 9200:9200
+    environment:
+      - "discovery.type=single-node"
+      - "bootstrap.memory_lock=true"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ELASTIC_PASSWORD=elastic"
+      #- "xpack.security.enabled=true"
+
+  kibana:   
+    image: kibana:7.10.1
+    container_name: kibana
+    depends_on:
+      - elasticsearch
+    ports:
+      - 5601:5601
+    environment:
+      - "ELASTIC_PASSWORD=elastic"
+      - "ELASTIC_USERNAME=elastic"
+      - "ELASTICSEARCH_HOSTS=http://elasticsearch:9200"
+     # ELASTICSEARCH_URL: http://elasticsearch:9200
+     
+     # NODE_OPTIONS: --max-old-space-size=512
+  nginx:
+    image: nginx:1.22
+    container_name: nginx
+    ports:
+      - 80:80
+    environment:
+      - TZ=Europa/Minsk 
